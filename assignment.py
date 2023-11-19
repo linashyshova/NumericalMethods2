@@ -91,9 +91,12 @@ def load_data_q2():
 def ols_estimator(y, x):
     beta_ols = np.zeros(2)
     ## BEGIN ANSWER
-    # ...
-    # TODO: Add your code here
-    # ...
+    x = x.reshape(-1, 1)
+    x = np.insert(x, 0, 1, axis=1)
+    y = y.reshape(-1, 1)
+    p1 = np.linalg.inv(np.matmul(x.transpose(), x))
+    p2 = np.matmul(x.transpose(), y)
+    beta_ols = np.matmul(p1, p2)
     ## END ANSWER
     return beta_ols
 
@@ -103,9 +106,10 @@ def ols_scatterplot():
     beta_ols = ols_estimator(y, x)
     plt.figure()
     ## BEGIN ANSWER
-    # ...
-    # TODO: Add your code here
-    # ...
+    b0 = beta_ols[0][0]
+    b1 = beta_ols[1][0]
+    plt.scatter(x, y)
+    plt.axline((0, b0), (3, b0 + 3 * b1), c='black')
     ## END ANSWER
     plt.savefig(wd+"Q2_b.pdf")
     return True
@@ -114,9 +118,7 @@ def ols_scatterplot():
 def sar(b,y,x):
     sar = 0
     ## BEGIN ANSWER
-    # ...
-    # TODO: Add your code here
-    # ...
+    sar = np.sum(np.abs(y - b[0] - b[1] * x))
     ## END ANSWER
     return sar
 
@@ -124,9 +126,12 @@ def sar(b,y,x):
 def sar_grad(b,y,x):
     sar_grad = np.zeros(2)
     ## BEGIN ANSWER
-    # ...
-    # TODO: Add your code here
-    # ...
+    b0 = b[0]
+    b1 = b[1]
+    part0 = np.sum((y - b0 - b1*x)/np.abs(y - b0 - b1*x) * (-1))
+    part1 = np.sum((y - b0 - b1*x)/np.abs(y - b0 - b1*x) * (-x))
+    sar_grad[0] = part0
+    sar_grad[1] = part1
     ## END ANSWER
     return sar_grad
 
@@ -140,9 +145,15 @@ def gradient_descent(f, grad, b0, y, x, max_iter=50, f_tol=1e-8):
     it = 0
     while (abs(fval_prev - fval) >= f_tol) and (it <= max_iter):
         ## BEGIN ANSWER
-        # ...
-        # TODO: Add your code here
-        # ...
+        g = grad(b, x, y)
+        h = np.negative(g)
+        a = 1.0
+        c1 = 0.0001
+        p = 0.95
+        while f(b + a * h, y, x) > f(b, y, x) + c1 * a * np.matmul(h, g.reshape(-1, 1))[0]:
+            a = a * p
+
+        b = b + a * h
         ## END ANSWER
         it += 1    
     return b
@@ -155,9 +166,14 @@ def lad_scatterplot():
     b0 = np.array([0.0, 0.0])
     plt.figure()
     ## BEGIN ANSWER
-    # ...
-    # TODO: Add your code here
-    # ...
+    beta_lad = gradient_descent(sar, sar_grad, b0, y, x)
+    beta_ols_0 = beta_ols[0][0]
+    beta_ols_1 = beta_ols[1][0]
+    beta_lad_0 = beta_lad[0]
+    beta_lad_1 = beta_lad[1]
+    plt.scatter(x, y)
+    plt.axline((0, beta_ols_0), (3, beta_ols_0 + 3 * beta_ols_1), c='black')
+    plt.axline((0, beta_lad_0), (3, beta_lad_0 + 3 * beta_lad_1), c='red', linestyle='dashed')
     ## END ANSWER
     plt.savefig(wd+"Q2_f.pdf")
     return True
@@ -168,9 +184,7 @@ def lad_nelder_mead():
     beta_lad = np.zeros(2)
     b0 = np.array([0.0, 0.0])
     ## BEGIN ANSWER
-    # ...
-    # TODO: Add your code here
-    # ...
+    beta_lad = minimize(sar, b0, method='Nelder-Mead',args=(y, x), tol=1e-6).x
     ## END ANSWER
     return beta_lad
 
