@@ -96,7 +96,8 @@ def ols_estimator(y, x):
     y = y.reshape(-1, 1)
     p1 = np.linalg.inv(np.matmul(x.transpose(), x))
     p2 = np.matmul(x.transpose(), y)
-    beta_ols = np.matmul(p1, p2)
+    p3 = np.matmul(p1, p2)
+    beta_ols = np.array((p3[0][0], p3[1][0]))
     ## END ANSWER
     return beta_ols
 
@@ -106,8 +107,8 @@ def ols_scatterplot():
     beta_ols = ols_estimator(y, x)
     plt.figure()
     ## BEGIN ANSWER
-    b0 = beta_ols[0][0]
-    b1 = beta_ols[1][0]
+    b0 = beta_ols[0]
+    b1 = beta_ols[1]
     plt.scatter(x, y)
     plt.axline((0, b0), (3, b0 + 3 * b1), c='black')
     ## END ANSWER
@@ -118,7 +119,8 @@ def ols_scatterplot():
 def sar(b,y,x):
     sar = 0
     ## BEGIN ANSWER
-    sar = np.sum(np.abs(y - b[0] - b[1] * x))
+    sum = np.sum(np.abs(y - b[0] - b[1] * x))
+    sar = sum / len(x)
     ## END ANSWER
     return sar
 
@@ -128,8 +130,9 @@ def sar_grad(b,y,x):
     ## BEGIN ANSWER
     b0 = b[0]
     b1 = b[1]
-    part0 = np.sum((y - b0 - b1*x)/np.abs(y - b0 - b1*x) * (-1))
-    part1 = np.sum((y - b0 - b1*x)/np.abs(y - b0 - b1*x) * (-x))
+    n = len(x)
+    part0 = np.sum((y - b0 - b1*x)/np.abs(y - b0 - b1*x) * (-1))/n
+    part1 = np.sum((y - b0 - b1*x)/np.abs(y - b0 - b1*x) * (-x))/n
     sar_grad[0] = part0
     sar_grad[1] = part1
     ## END ANSWER
@@ -145,7 +148,7 @@ def gradient_descent(f, grad, b0, y, x, max_iter=50, f_tol=1e-8):
     it = 0
     while (abs(fval_prev - fval) >= f_tol) and (it <= max_iter):
         ## BEGIN ANSWER
-        g = grad(b, x, y)
+        g = grad(b, y, x)
         h = np.negative(g)
         a = 1.0
         c1 = 0.0001
@@ -154,8 +157,10 @@ def gradient_descent(f, grad, b0, y, x, max_iter=50, f_tol=1e-8):
             a = a * p
 
         b = b + a * h
+        fval_prev = fval
+        fval = f(b, y, x)
         ## END ANSWER
-        it += 1    
+        it += 1
     return b
 
 # Q2 (f)
@@ -167,8 +172,8 @@ def lad_scatterplot():
     plt.figure()
     ## BEGIN ANSWER
     beta_lad = gradient_descent(sar, sar_grad, b0, y, x)
-    beta_ols_0 = beta_ols[0][0]
-    beta_ols_1 = beta_ols[1][0]
+    beta_ols_0 = beta_ols[0]
+    beta_ols_1 = beta_ols[1]
     beta_lad_0 = beta_lad[0]
     beta_lad_1 = beta_lad[1]
     plt.scatter(x, y)
