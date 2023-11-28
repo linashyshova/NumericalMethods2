@@ -19,45 +19,57 @@ wd = os.path.dirname(os.path.abspath(__file__)) + '/'
 # Q1 (a)
 def pdf_cauchy(x, mu=0, sigma=1):
     f = 0.0
-    ## BEGIN ANSWER
-    # ...
-    # TODO: Add your code here
-    # ...
-    ## END ANSWER
+    #
+    f = 1 / (pi * sigma * (1 + ((x - mu) / sigma) ** 2))
+    #
     return f
+
 
 # Q1 (b)
 def pdf_laplace(x, mu=0, b=1):
     f = 0
-    ## BEGIN ANSWER
-    # ...
-    # TODO: Add your code here
-    # ...
-    ## END ANSWER
+    #
+    f = (1 / (2 * b)) * exp(-abs(x - mu) / b)
+    #
     return f
+
 
 # Q1 (c)
 def rng_cauchy(n, mu=0, sigma=1, seed=None):
     if seed is not None:
         np.random.seed(seed)
     x = np.zeros(n)
-    ## BEGIN ANSWER
-    # ...
-    # TODO: Add your code here
-    # ...
-    ## END ANSWER
+    U = np.random.rand(n)
+
+    #  #Inverse CDF function
+    x = mu + sigma * np.tan(np.pi * (U - 0.5))
+    #
     return x
+
 
 # Q1 (d)
 def rng_std_laplace(n, seed=None):
     if seed is not None:
         np.random.seed(seed)
     x = np.zeros(n)
-    ## BEGIN ANSWER
-    # ...
-    # TODO: Add your code here
-    # ...
-    ## END ANSWER
+
+    #
+    i = 0
+    M = pi / 2  # M value
+
+    # Acceptence rate alpha
+    def alpha(y):
+        return pdf_laplace(y) / (M * pdf_cauchy(y))
+
+    while i < n:
+        Y = rng_cauchy(1)
+        U = np.random.rand()
+
+        if U <= alpha(Y):
+            x[i] = Y
+            i += 1
+
+    #
     return x
 
 
@@ -67,12 +79,21 @@ def hist_std_laplace():
     seed = 34786
     x = rng_std_laplace(n, seed)
     plt.figure()
-    ## BEGIN ANSWER
-    # ...
-    # TODO: Add your code here
-    # ...
-    ## END ANSWER
-    plt.savefig(wd+"Q1_e.pdf")
+    #
+
+    # Laplace density values
+    z = np.linspace(-7, 7, num=50000)
+    f_z = [pdf_laplace(x) for x in z]
+
+    plt.xlim(-7, 7)
+    plt.plot(z, f_z, c="orange", linewidth=2)
+    plt.hist(x, bins=200, density=True)
+    plt.xlabel('$x$')
+    plt.ylabel('Density')
+
+    #
+    plt.savefig(wd + "Q1_e.pdf")
+    plt.show()
     return True
 
 
